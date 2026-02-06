@@ -602,6 +602,7 @@ function epl_wpimport_delete_duplicate_attachments( $dryrun = true ) {
  * Trigger the deletion of duplicate attachments.
  *
  * @since 2.1
+ * @since 2.2.2 Fix: csrf vulnerability.
  */
 function epl_wpimport_trigger_duplicate_deletion() {
 
@@ -611,6 +612,12 @@ function epl_wpimport_trigger_duplicate_deletion() {
 
 	if ( ! isset( $_GET['epl_wpimport_delete_duplicate_attachments'] ) ) {
 			return;
+	}
+
+	$nonce = isset( $_GET['_wpnonce'] ) ? sanitize_text_field( wp_unslash( $_GET['_wpnonce'] ) ) : '';
+
+	if ( ! wp_verify_nonce( $nonce, 'epl_wpimport_delete_duplicate_attachments' ) ) {
+		wp_die( esc_html__( 'Security check failed. Please try again.', 'epl-wpimport' ) );
 	}
 
 	$runmode = isset( $_GET['mode'] ) ? sanitize_key( $_GET['mode'] ) : '';

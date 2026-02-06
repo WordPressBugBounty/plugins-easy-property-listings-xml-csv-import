@@ -21,6 +21,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  *
  * @return null|array
  * @since 1.0.0
+ * @since 2.2.2 Fix: csrf vulnerability.
  */
 function epl_wpimport_extensions_options_filter( $epl_fields = null ) {
 	$fields        = array();
@@ -37,6 +38,27 @@ function epl_wpimport_extensions_options_filter( $epl_fields = null ) {
 		__( 'Visit the <a href="%1$s">codex</a> for detailed instructions.', 'epl-wpimport' ),
 		esc_url( 'https://codex.easypropertylistings.com.au/category/343-wp-all-import-add-on' )
 	) . '</p>';
+
+	$cleanup_base_url    = admin_url( 'admin.php' );
+	$cleanup_dry_run_url = wp_nonce_url(
+		add_query_arg(
+			array(
+				'epl_wpimport_delete_duplicate_attachments' => 1,
+			),
+			$cleanup_base_url
+		),
+		'epl_wpimport_delete_duplicate_attachments'
+	);
+	$cleanup_live_url    = wp_nonce_url(
+		add_query_arg(
+			array(
+				'epl_wpimport_delete_duplicate_attachments' => 1,
+				'mode'                                       => 'live',
+			),
+			$cleanup_base_url
+		),
+		'epl_wpimport_delete_duplicate_attachments'
+	);
 
 	$fields[] = array(
 		'label'  => __( 'Settings', 'epl-wpimport' ),
@@ -58,6 +80,21 @@ function epl_wpimport_extensions_options_filter( $epl_fields = null ) {
 					'off' => __( 'Disable (Operates as per WP All Import Pro default)', 'epl-wpimport' ),
 				),
 				'default' => 'off',
+			),
+
+			array(
+				'name'    => 'epl_wpimport_duplicate_cleanup',
+				'type'    => 'help',
+				'content' => sprintf(
+					'<p><strong>%1$s</strong><br>%2$s <a href="%3$s">%4$s</a> | <a href="%5$s">%6$s</a></p><p class="description">%7$s</p>',
+					esc_html__( 'Duplicate Attachment Cleanup', 'epl-wpimport' ),
+					esc_html__( 'Run the cleanup utility to remove duplicate attachments created during imports. Start with a dry run to preview the deletions.', 'epl-wpimport' ),
+					esc_url( $cleanup_dry_run_url ),
+					esc_html__( 'Dry run', 'epl-wpimport' ),
+					esc_url( $cleanup_live_url ),
+					esc_html__( 'Run live cleanup', 'epl-wpimport' ),
+					esc_html__( 'Live cleanup permanently deletes duplicate attachments.', 'epl-wpimport' )
+				),
 			),
 		),
 	);
